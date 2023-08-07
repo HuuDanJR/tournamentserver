@@ -21,9 +21,11 @@
     "mssql": "^8.1.2",
     "mysql": "^2.18.1",
     "node-cmd": "^5.0.0",
+    "node-cron": "^3.0.2",
     "node-datetime": "^2.1.2",
     "path": "^0.12.7",
     "soap": "^0.45.0",
+    "socket.io": "^4.7.1",
     "swagger-ui-express": "^4.5.0",
     "xml2js": "^0.4.23"
   },

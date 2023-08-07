@@ -24,9 +24,17 @@ async function findBetNumber( callback) {
 }
 
 
+
+
+
+
+
+
+
+
 async function findStationData( callback) {
     // let query = `SELECT * FROM stationdata`;
-   let query = `SELECT * FROM stationdata ORDER BY bet DESC, credit DESC`;
+   let query = `SELECT * FROM stationdata WHERE connect = 1 ORDER BY credit DESC LIMIT 10`;
 
     try {
         await connection.getConnection(function (err, conn) {
