@@ -42,18 +42,20 @@ http.listen(port, () => { // Use 'http' instead of 'app' to listen to the port
 //SOCKET IO USE
 io.on('connection', (socket) => {
     console.log('A user connected');
-    dboperation_socketio.findStationDataSocketWName('eventFromServer',io);
+    dboperation_socketio.findDataSocketFull('eventFromServer',io,true);
 
     //node_cron work as a lib to set schedule work every time as  i required
-    const cronJob = cron.schedule('*/2 * * * * *', () => {
-        dboperation_socketio.findStationDataSocketWName('eventFromServer',io);
+    const cronJob = cron.schedule('*/5 * * * * *', () => {
+        dboperation_socketio.findDataSocketFull('eventFromServer',io,false);
     });
 
-    // Handle events from the client
+    // // Handle events from the client
     socket.on('eventFromClient', (data) => {
-        console.log('Received data from client:', data);
-        dboperation_socketio.findStationDataSocketWName('eventFromServer',io);
+        // console.log('Received data from client:', data);
+        // dboperation_socketio.findStationDataSocketWName('eventFromServer',io);
+        dboperation_socketio.findDataSocketFull('eventFromServer',io,false);
     });
+
     socket.on('eventFromClientDelete', (data) => {
         const stationIdToDelete = data.stationId;
         dboperation_socketio.deleteStationDataSocketWName('eventFromServer',io,stationIdToDelete)
@@ -61,11 +63,10 @@ io.on('connection', (socket) => {
     });
 
 
-
     socket.on('eventFromClientAdd', (data) => {
         const machine = data.machine;
-        const member =data.member;const bet=data.bet;const credit=data.credit;
-        const connect=data.connect;const status=data.status;const aft=data.aft
+        const member = data.member;const bet=data.bet;const credit=data.credit;
+        const connect = data.connect;const status=data.status;const aft=data.aft
         const lastupdate = data.lastupdate;
         dboperation_socketio.addStationDataSocketWName('eventFromServer',io,machine, member, bet, credit, connect, status, aft, lastupdate)
         dboperation_socketio.findStationDataSocketWName('eventFromServer',io);
@@ -76,8 +77,6 @@ io.on('connection', (socket) => {
         console.log('A user disconnected');
         cronJob.stop();
     });
-
-    
 });
 
 
@@ -89,7 +88,9 @@ io.on('connection', (socket) => {
 // }, 5000);
 
 
-
+router.route('/home').get((req, res) => {
+    return res.status(200).json('home tournament');
+})
 
 
 router.route('/findbetnumber').get((req, res) => {
@@ -99,6 +100,45 @@ router.route('/findbetnumber').get((req, res) => {
                 return res.status(500).json({ error: 'Error fetching bet numbers.' });
             }
             return res.status(200).json(result);
+        });
+    } catch (error) {
+        return res.status(500).json({ error: 'An unexpected error occurred.' });
+    }
+})
+
+
+router.route('/finddata').get((req, res) => {
+    try {
+        dboperation.findData((err, result) => {
+            if (err) {
+                return res.status(500).json({ error: 'Error fetching data.' });
+            }
+            // Extract credit values from the result array
+            const credits = result.map(item => item.credit);
+            const credits_default = [100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0];
+
+
+            // Create the desired result format
+            const desiredResult = [credits_default,credits];
+
+            return res.status(200).json(desiredResult);
+        });
+    } catch (error) {
+        return res.status(500).json({ error: 'An unexpected error occurred.' });
+    }
+})
+router.route('/finddatanumber').get((req, res) => {
+    try {
+        dboperation.findDataNumber((err, result) => {
+            if (err) {
+                return res.status(500).json({ error: 'Error fetching data.' });
+            }
+            // Extract credit values from the result array
+            const credits = result.map(item => item.credit);
+            const members = result.map(item => item.member);
+            const desiredResult = [members,credits];
+
+            return res.status(200).json(desiredResult);
         });
     } catch (error) {
         return res.status(500).json({ error: 'An unexpected error occurred.' });
@@ -142,6 +182,22 @@ router.route('/addstationdata').post((req, res) => {
     }
 })
 
+router.route('/updatestationdata').post((req, res) => {
+    try {
+        const {  member,  credit,} = req.body;
+        
+        dboperation.updateStationData(member, credit, (err, result) => {
+            if (err) {
+                return res.status(500).json({ error: 'Error update station data.' });
+            }
+            return res.status(201).json({ message: 'Station data updated successfully.',result });
+        });
+    } catch (error) {
+        console.error('An unexpected error occurred:', error);
+        return res.status(500).json({ error: 'An unexpected error occurred.' });
+    }
+})
+
 
 router.route('/deletestationdata').delete((req, res) => {
     try {
@@ -152,6 +208,22 @@ router.route('/deletestationdata').delete((req, res) => {
                 return res.status(500).json({ error: 'Error deleting station data.' });
             }
             return res.status(201).json({ message: 'Station data deleting successfully.',result });
+        });
+    } catch (error) {
+        console.error('An unexpected error occurred:', error);
+        return res.status(500).json({ error: 'An unexpected error occurred.' });
+    }
+})
+
+router.route('/deletestationdataall').delete((req, res) => {
+    try {
+       const {ip}= req.body; 
+        dboperation.deleteStationDataAll( (err, result) => {
+            if (err) {
+                console.error('Error delete station data:', err);
+                return res.status(500).json({ error: 'Error deleting station data all.' });
+            }
+            return res.status(201).json({ message: 'Station data deleting all successfully.',result });
         });
     } catch (error) {
         console.error('An unexpected error occurred:', error);
