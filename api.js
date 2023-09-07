@@ -2,7 +2,7 @@ var dboperation = require('./dboperation')
 var express = require('express')
 var body_parser = require('body-parser')
 var cors = require('cors')
-var app = express();
+var app = express();var url = require('url');
 var router = express.Router();
 var fs = require('fs');
 var cmd = require('node-cmd');
@@ -45,7 +45,7 @@ io.on('connection', (socket) => {
     dboperation_socketio.findDataSocketFull('eventFromServer',io,true);
 
     //node_cron work as a lib to set schedule work every time as  i required
-    const cronJob = cron.schedule('*/5 * * * * *', () => {
+    const cronJob = cron.schedule('*/10 * * * * *', () => {
         dboperation_socketio.findDataSocketFull('eventFromServer',io,false);
     });
 
@@ -90,6 +90,11 @@ io.on('connection', (socket) => {
 
 router.route('/home').get((req, res) => {
     return res.status(200).json('home tournament');
+})
+router.route('/init').get((req, res) => {
+    // const url = 'http://localhost:8090'; // Your desired URL
+   const url = `${req.protocol}://${req.get('host')}`
+    res.json({"url": url });
 })
 
 
@@ -175,6 +180,28 @@ router.route('/addstationdata').post((req, res) => {
             
             // Return success response
             return res.status(201).json({ message: 'Station data added successfully.',result });
+        });
+    } catch (error) {
+        console.error('An unexpected error occurred:', error);
+        return res.status(500).json({ error: 'An unexpected error occurred.' });
+    }
+})
+router.route('/addstationdata_w_ip').post((req, res) => {
+    try {
+        const {ip, machine, member, bet, credit, connect, status, aft, lastupdate } = req.body;
+        // Ensure all required fields are present in the request body
+        if (  !machine || !member || !bet || !credit || !connect || !status || !aft || !lastupdate) {
+            return res.status(400).json({ error: 'Missing required fields in the request body. data data w ip' });
+        }
+        // Call the function to insert the data into the 'stationdata' table
+        dboperation.addStationDataWithIP(ip,machine, member, bet, credit, connect, status, aft, lastupdate, (err, result) => {
+            if (err) {
+                console.error('Error adding station data:', err);
+                return res.status(500).json({ error: 'Error adding  w ip station data.' });
+            }
+            
+            // Return success response
+            return res.status(201).json({ message: 'Station data w ip added successfully.',result });
         });
     } catch (error) {
         console.error('An unexpected error occurred:', error);

@@ -122,6 +122,27 @@ async function addStationData(machine, member, bet, credit, connect, status, aft
         console.log(`An error orcur findFrameDateCustomer: ${error}`);
     }
   }
+async function addStationDataWithIP(ip,machine, member, bet, credit, connect, status, aft, lastupdate,callback ) {
+    const query = `INSERT INTO stationdata (ip,machine, member, bet, credit, connect, status, aft, lastupdate) VALUES (?,?, ?, ?, ?, ?, ?, ?, ?)`;
+    const values = [ip,machine, member, bet, credit, connect, status, aft, lastupdate];
+    try {
+        await connection.getConnection(function (err, conn) {
+            if(err){
+                console.log(`getConnection error : ${err}`)
+            }
+            connection.query(query,values, function (err, result,fields) {
+                if (err)(
+                    console.log(err)
+                );
+                callback(err, result)
+            });
+            conn.release();
+        })
+       
+    } catch (error) {
+        console.log(`An error orcur findFrameDateCustomer: ${error}`);
+    }
+  }
 
   async function updateStationData( member, credit,callback ) {
     const query = `UPDATE stationdata SET  credit = ? WHERE member = ?`;
@@ -217,6 +238,8 @@ module.exports = {
     findData:findData,
     findDataNumber:findDataNumber,
     deleteStationDataAll:deleteStationDataAll,
-    updateStationData:updateStationData
+    updateStationData:updateStationData,
+
+    addStationDataWithIP:addStationDataWithIP,
 
 }

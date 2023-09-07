@@ -27,6 +27,7 @@
     "soap": "^0.45.0",
     "socket.io": "^4.7.1",
     "swagger-ui-express": "^4.5.0",
+    "url": "^0.11.1",
     "xml2js": "^0.4.23"
   },
   "keywords": [],
