@@ -12,8 +12,8 @@ var http = require('http').createServer(app);  // Use the same http instance for
 var io = require('socket.io')(http); 
 const cron = require('node-cron');
 
-var dboperation_socket =require('./dboperation_socketio');
-const dboperation_socketio = require('./dboperation_socketio');
+// var dboperation_socket =require('./dboperation_socketio');
+// const dboperation_socketio = require('./dboperation_socketio');
 
 app.use(function (req, res, next) {
     res.header("Access-Control-Allow-Origin", "*");
@@ -43,26 +43,21 @@ http.listen(port, () => { // Use 'http' instead of 'app' to listen to the port
 io.on('connection', (socket) => {
     console.log('A user connected');
     dboperation_socketio.findDataSocketFull('eventFromServer',io,true);
-
     //node_cron work as a lib to set schedule work every time as  i required
-    const cronJob = cron.schedule('*/10 * * * * *', () => {
+    const cronJob = cron.schedule('*/1 * * * * *', () => {
         dboperation_socketio.findDataSocketFull('eventFromServer',io,false);
     });
-
     // // Handle events from the client
     socket.on('eventFromClient', (data) => {
         // console.log('Received data from client:', data);
         // dboperation_socketio.findStationDataSocketWName('eventFromServer',io);
         dboperation_socketio.findDataSocketFull('eventFromServer',io,false);
     });
-
     socket.on('eventFromClientDelete', (data) => {
         const stationIdToDelete = data.stationId;
         dboperation_socketio.deleteStationDataSocketWName('eventFromServer',io,stationIdToDelete)
         dboperation_socketio.findStationDataSocketWName('eventFromServer',io);
     });
-
-
     socket.on('eventFromClientAdd', (data) => {
         const machine = data.machine;
         const member = data.member;const bet=data.bet;const credit=data.credit;
@@ -94,7 +89,7 @@ router.route('/home').get((req, res) => {
 router.route('/init').get((req, res) => {
     // const url = 'http://localhost:8090'; // Your desired URL
    const url = `${req.protocol}://${req.get('host')}`
-    res.json({"url": url });
+   res.json({"url": url });
 })
 
 

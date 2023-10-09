@@ -65,27 +65,28 @@ function findDataSocket(name, io) {
 }
 function findDataSocketFull(name, io, isInit) {
   // let query = `SELECT credit, member FROM stationdata WHERE connect = 1 ORDER BY credit`;
-  let query = `SELECT credit, member FROM stationdata WHERE connect = 1 ORDER BY credit DESC  LIMIT 10`;
+  let query = `SELECT credit, ip FROM stationdata WHERE connect = 1 ORDER BY credit DESC  LIMIT 10`;
   connection.query(query, function (err, result, fields) {
     if (err) {
       console.log(err);
     } else {
       const newCredits = result.map(item => parseFloat(item.credit) / 100);
-      const members = result.map(item => parseInt(item.member, 10));
+      const ips = result.map(item => parseInt(item.ip, 10));
+      // console.log(ips);
       let randomdata= generateGoodRandomData(5,10);
-      console.log(randomdata)
+      // console.log(randomdata)
       if (isInit == true) {
-        io.emit(name, [members,randomdata, oldCredits, newCredits]);
+        io.emit(name, [ips, oldCredits, newCredits]);
       }
       if (!areArraysEqual(oldCredits, newCredits)) {
         console.log('data change')
-        io.emit(name, [members, oldCredits, newCredits]);
+        io.emit(name, [ips, oldCredits, newCredits]);
         oldCredits = newCredits;
       }
       else {
         oldCredits = newCredits;
       }
-              //  io.emit(name, [members, randomdata, newCredits]);
+      //  io.emit(name, [members, randomdata, newCredits]);
 
     }
   });
