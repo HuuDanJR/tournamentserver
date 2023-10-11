@@ -7,13 +7,15 @@ var router = express.Router();
 var fs = require('fs');
 var cmd = require('node-cmd');
 var path = require('path');
+
+
 var soap = require('./soap')
 var http = require('http').createServer(app);  // Use the same http instance for express and socket.io
 var io = require('socket.io')(http); 
 const cron = require('node-cron');
 
-// var dboperation_socket =require('./dboperation_socketio');
-// const dboperation_socketio = require('./dboperation_socketio');
+var dboperation_socket =require('./dboperation_socketio');
+const dboperation_socketio = require('./dboperation_socketio');
 
 app.use(function (req, res, next) {
     res.header("Access-Control-Allow-Origin", "*");
@@ -22,6 +24,7 @@ app.use(function (req, res, next) {
 });
 app.use(body_parser.urlencoded({ extended: true }))
 app.use(body_parser.json())
+
 app.use(cors())
 app.use('/api', router)
 
@@ -30,11 +33,24 @@ router.use((request, response, next) => {
     next();
 });
 
+
+
 var port = process.env.PORT || 8090;
 
 http.listen(port, () => { // Use 'http' instead of 'app' to listen to the port
     console.log('app running at port: ' + port);
 });
+
+//USE MONGODB DATABASE
+var config = require('./dboperation_mongo')
+config.connectDB()
+
+const rankingModel = require('./model/ranking');
+const rankingRoutes = require('./service_mongo'); 
+app.use('/api', rankingRoutes);
+
+
+
 
 
 
